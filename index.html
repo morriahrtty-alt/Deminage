@@ -260,6 +260,16 @@
     margin-top:12px;
     border-radius:2px;
   }
+  .custom-slot.slot-image{
+    padding:0;
+    overflow:hidden;
+  }
+  .custom-slot.slot-image img{
+    margin:0;
+    width:100%;
+    border:none;
+    border-radius:0;
+  }
   .img-fallback{
     margin-top:12px;
     padding:14px;
@@ -417,6 +427,24 @@
 
   .status-flash{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--hazard); text-align:center; margin-top:8px; min-height:14px;}
 
+  /* ============ ÉDITION EN LIGNE (RECRUTEMENT / LIAISON) ============ */
+  .edit-toolbar{display:flex; justify-content:flex-end; margin-bottom:18px;}
+  .edit-toolbar .btn{padding:9px 16px; font-size:11px;}
+  .edit-row{
+    display:flex; gap:10px; align-items:flex-start;
+    margin-bottom:12px; background:var(--panel); border:1px solid var(--line); padding:14px;
+  }
+  .edit-row .edit-row-fields{flex:1; display:flex; flex-direction:column; gap:8px;}
+  .edit-row .edit-row-fields .field{margin-bottom:0;}
+  .edit-row .remove-row{
+    flex-shrink:0; width:30px; height:30px; margin-top:22px;
+    border:1px solid var(--danger); background:transparent; color:var(--danger);
+    cursor:pointer; border-radius:2px; font-size:13px;
+  }
+  .edit-row .remove-row:hover{background:var(--danger); color:var(--paper);}
+  .card a{color:var(--hazard); text-decoration:none; word-break:break-all;}
+  .card a:hover{text-decoration:underline;}
+
   @media (prefers-reduced-motion: reduce){
     .ticker, .status .dot, .tab-panel{animation:none !important;}
   }
@@ -467,24 +495,14 @@
     <div class="tab-panel active" id="iedcable">
       <div class="panel-head"><span class="code">DOC 01</span><h3>IED Câble — Terminal de désamorçage</h3></div>
 
-      <div class="custom-slot">
-               <img src="https://i.imgur.com/tfMFhh6.jpeg" alt="Schéma IED câble" onerror="this.outerHTML='&lt;div class=&quot;img-fallback&quot;&gt;⚠ Image indisponible — vérifiez l&#39;URL directe de l&#39;image.&lt;/div&gt;'">
+      <div class="custom-slot slot-image">
+        <!-- ZONE PERSONNALISABLE : l'image ci-dessous remplit toute la zone hachurée -->
+        <img src="https://i.imgur.com/tfMFhh6.jpeg" alt="Schéma IED câble" onerror="this.outerHTML='&lt;div class=&quot;img-fallback&quot;&gt;⚠ Image indisponible — vérifiez le lien direct de cette image.&lt;/div&gt;'">
       </div>
 
       <div class="op-select-row field">
         <label for="operatorName2">Opérateur actif</label>
-        <select id="operatorName2" onchange="changerOperateur('operatorName2')">
-          <option value="GCA-1 : Zero Azur">GCA-1 : Zero Azur</option>
-          <option value="GCA-2 : Matt du 83">GCA-2 : Matt du 83</option>
-          <option value="GCA-3 : Wolf">GCA-3 : Wolf</option>
-          <option value="GCA-4 : Nico">GCA-4 : Nico</option>
-          <option value="GCA-5 : Brindas">GCA-5 : Brindas</option>
-          <option value="GCA-6 : Devil">GCA-6 : Devil</option>
-          <option value="GCA-7 : Antoine">GCA-7 : Antoine</option>
-          <option value="GCA-8 : Baguettini">GCA-8 : Baguettini</option>
-          <option value="GCA-9 : MrPab">GCA-9 : MrPab</option>
-          <option value="GCA-10 : Libre">GCA-10 : Libre</option>
-        </select>
+        <select id="operatorName2" onchange="changerOperateur('operatorName2')"></select>
       </div>
 
       <div class="calc-layout">
@@ -547,24 +565,14 @@
     <div class="tab-panel" id="iedtuyaux">
       <div class="panel-head"><span class="code">DOC 02</span><h3>IED Tuyaux — Calculateur</h3></div>
 
-      <div class="custom-slot">
-               <img src="https://i.imgur.com/9NZqPDi.jpeg" alt="Schéma IED tuyaux" onerror="this.outerHTML='&lt;div class=&quot;img-fallback&quot;&gt;⚠ Image indisponible — vérifiez l&#39;URL directe de l&#39;image.&lt;/div&gt;'">
+      <div class="custom-slot slot-image">
+        <!-- ZONE PERSONNALISABLE : l'image ci-dessous remplit toute la zone hachurée -->
+        <img src="https://i.imgur.com/9NZqPDi.jpeg" alt="Schéma IED tuyaux" onerror="this.outerHTML='&lt;div class=&quot;img-fallback&quot;&gt;⚠ Image indisponible — vérifiez le lien direct de cette image.&lt;/div&gt;'">
       </div>
 
       <div class="op-select-row field">
         <label for="operatorName3">Opérateur actif</label>
-        <select id="operatorName3" onchange="changerOperateur('operatorName3')">
-          <option value="GCA-1 : Zero Azur">GCA-1 : Zero Azur</option>
-          <option value="GCA-2 : Matt du 83">GCA-2 : Matt du 83</option>
-          <option value="GCA-3 : Wolf">GCA-3 : Wolf</option>
-          <option value="GCA-4 : Nico">GCA-4 : Nico</option>
-          <option value="GCA-5 : Brindas">GCA-5 : Brindas</option>
-          <option value="GCA-6 : Devil">GCA-6 : Devil</option>
-          <option value="GCA-7 : Antoine">GCA-7 : Antoine</option>
-          <option value="GCA-8 : Baguettini">GCA-8 : Baguettini</option>
-          <option value="GCA-9 : MrPab">GCA-9 : MrPab</option>
-          <option value="GCA-10 : Libre">GCA-10 : Libre</option>
-        </select>
+        <select id="operatorName3" onchange="changerOperateur('operatorName3')"></select>
       </div>
 
       <div class="calc-layout">
@@ -621,7 +629,12 @@
     <!-- 04 BRIEFING -->
     <div class="tab-panel" id="briefing">
       <div class="panel-head"><span class="code">DOC 03</span><h3>Briefing de mission &amp; archives</h3></div>
-    
+
+      <div class="custom-slot">
+        <!-- ZONE PERSONNALISABLE : ajoutez ici une introduction, une charte de rédaction, etc. -->
+        Zone personnalisable : remplacez ce bloc par votre propre contenu (règles de rédaction des briefings, contact, etc.).
+      </div>
+
       <div class="briefing-grid">
         <div class="archive-list" id="briefing-log-list"></div>
         <div class="brief-view" id="publicBriefingView"></div>
@@ -632,6 +645,10 @@
     <div class="tab-panel" id="logs">
       <div class="panel-head"><span class="code">DOC 04</span><h3>Statistiques &amp; logs</h3></div>
 
+      <div class="custom-slot">
+        <!-- ZONE PERSONNALISABLE : ajoutez ici des explications sur les statistiques, un lien vers un tableau externe, etc. -->
+        Zone personnalisable : remplacez ce bloc par votre propre contenu.
+      </div>
 
       <h4 class="mono" style="color:var(--hazard); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;">1. Bilan des opérateurs</h4>
       <div class="table-wrap" id="globalStatsBox" style="margin-bottom:26px;"></div>
@@ -650,28 +667,72 @@
     <!-- 06 EFFECTIF -->
     <div class="tab-panel" id="effectif">
       <div class="panel-head"><span class="code">DOC 05</span><h3>Effectif</h3></div>
-    </div>
-
-    <!-- 07 RECRUTEMENT -->
-    <div class="tab-panel" id="recrutement">
-      <div class="panel-head"><span class="code">DOC 06</span><h3>Recrutement</h3></div>
-      
-      <div class="card-grid">
-        <div class="card"><b>Prérequis</b><p>Micro fonctionnel, disponibilité sessions RP, esprit d'équipe.</p></div>
-        <div class="card"><b>Formation</b><p>Détection, désamorçage, procédures de sécurisation de zone.</p></div>
-        <div class="card"><b>Contact</b><p>Voir l'onglet Liaison pour candidater.</p></div>
+      <div class="placeholder-slot">
+        <!-- Zone réservée à l'organigramme / trombinoscope de la section -->
+        Zone réservée à l'organigramme / trombinoscope de la section.
       </div>
     </div>
 
-    <!-- 08 LIAISON -->
+    <!-- 06 RECRUTEMENT (personnalisable directement depuis la page) -->
+    <div class="tab-panel" id="recrutement">
+      <div class="panel-head"><span class="code">DOC 06</span><h3>Recrutement</h3></div>
+
+      <div class="edit-toolbar">
+        <button class="btn btn-ghost" id="recrutementEditBtn" onclick="toggleEditRecrutement()" style="width:auto; margin:0;">✎ Modifier cette page</button>
+      </div>
+
+      <!-- VUE PUBLIQUE -->
+      <div id="recrutementView">
+        <div class="placeholder-slot" id="recrutementDescView"></div>
+        <div class="card-grid" id="recrutementCardsView"></div>
+      </div>
+
+      <!-- MODE ÉDITION -->
+      <div id="recrutementEdit" style="display:none;">
+        <div class="field"><label for="recrutementDescInput">Texte de présentation</label><textarea id="recrutementDescInput" rows="3"></textarea></div>
+        <div id="recrutementCardsEdit"></div>
+        <button class="btn btn-ghost" style="max-width:260px;" onclick="ajouterCarteRecrutement()">+ Ajouter une carte</button>
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn" onclick="sauvegarderRecrutement()">Enregistrer</button>
+          <button class="btn btn-ghost" onclick="annulerEditionRecrutement()">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07 LIAISON (personnalisable directement depuis la page) -->
     <div class="tab-panel" id="liaison">
       <div class="panel-head"><span class="code">DOC 07</span><h3>Liaison / Contact</h3></div>
-      
+
+      <div class="edit-toolbar">
+        <button class="btn btn-ghost" id="liaisonEditBtn" onclick="toggleEditLiaison()" style="width:auto; margin:0;">✎ Modifier cette page</button>
+      </div>
+
+      <!-- VUE PUBLIQUE -->
+      <div id="liaisonView">
+        <div class="placeholder-slot" id="liaisonDescView"></div>
+        <div class="card-grid" id="liaisonLinksView"></div>
+      </div>
+
+      <!-- MODE ÉDITION -->
+      <div id="liaisonEdit" style="display:none;">
+        <div class="field"><label for="liaisonDescInput">Texte de présentation</label><textarea id="liaisonDescInput" rows="3"></textarea></div>
+        <div id="liaisonLinksEdit"></div>
+        <button class="btn btn-ghost" style="max-width:260px;" onclick="ajouterLienLiaison()">+ Ajouter un lien</button>
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn" onclick="sauvegarderLiaison()">Enregistrer</button>
+          <button class="btn btn-ghost" onclick="annulerEditionLiaison()">Annuler</button>
+        </div>
+      </div>
     </div>
 
     <!-- 09 ADMIN (protégé par mot de passe) -->
     <div class="tab-panel" id="admin">
       <div class="panel-head"><span class="code">DOC 08</span><h3>Accès sécurisé — Admin</h3></div>
+
+      <div class="custom-slot">
+        <!-- ZONE PERSONNALISABLE : ajoutez ici des consignes internes visibles avant même le déverrouillage -->
+        Zone personnalisable : remplacez ce bloc par votre propre contenu (rappel de procédure interne, etc.).
+      </div>
 
       <div id="authContainer">
         <div class="lock-screen">
@@ -686,24 +747,26 @@
       </div>
 
       <div id="briefingAdminContent" style="display:none;">
+
+        <h4 class="mono" style="color:var(--hazard); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px;">Gestion des utilisateurs</h4>
+        <div id="usersManageList"></div>
+        <div class="edit-row">
+          <div class="edit-row-fields">
+            <div class="field"><label for="newOperatorInput">Nouvel opérateur</label><input type="text" id="newOperatorInput" placeholder="GCA-11 : Nom" onkeydown="if(event.key === 'Enter') ajouterOperateur()"></div>
+          </div>
+          <button class="btn" style="width:auto; margin-top:22px; padding:10px 18px;" onclick="ajouterOperateur()">+ Ajouter</button>
+        </div>
+        <div class="status-flash" id="usersStatus"></div>
+
+        <hr style="border:none; border-top:1px solid var(--line); margin:30px 0;">
+
         <h4 class="mono" style="color:var(--hazard); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px;">Planification briefing</h4>
 
         <div class="field"><label for="briefTitle">Nom de la mission</label><input type="text" id="briefTitle" value="Opération Clean Sweep" oninput="sauvegarderBriefing()"></div>
         <div class="field"><label for="briefDate">Date &amp; heure H-Hour</label><input type="datetime-local" id="briefDate" onchange="sauvegarderBriefing()"></div>
         <div class="field">
           <label for="briefLeader">Commandant de mission</label>
-          <select id="briefLeader" onchange="sauvegarderBriefing()">
-            <option value="GCA-1 : Zero Azur">GCA-1 : Zero Azur</option>
-            <option value="GCA-2 : Matt du 83">GCA-2 : Matt du 83</option>
-            <option value="GCA-3 : Wolf">GCA-3 : Wolf</option>
-            <option value="GCA-4 : Nico">GCA-4 : Nico</option>
-            <option value="GCA-5 : Brindas">GCA-5 : Brindas</option>
-            <option value="GCA-6 : Devil">GCA-6 : Devil</option>
-            <option value="GCA-7 : Antoine">GCA-7 : Antoine</option>
-            <option value="GCA-8 : Baguettini">GCA-8 : Baguettini</option>
-            <option value="GCA-9 : MrPab">GCA-9 : MrPab</option>
-            <option value="GCA-10 : Libre">GCA-10 : Libre</option>
-          </select>
+          <select id="briefLeader" onchange="sauvegarderBriefing()"></select>
         </div>
         <div class="field"><label for="briefContext">Contexte tactique (SITREP)</label><textarea id="briefContext" rows="2" oninput="sauvegarderBriefing()">Zone urbaine hautement contaminée par des engins explosifs improvisés...</textarea></div>
         <div class="field"><label for="briefObjectives">Objectifs principaux</label><textarea id="briefObjectives" rows="2" oninput="sauvegarderBriefing()">1. Infiltration discrète.
@@ -782,10 +845,111 @@
     let currentArchiveIndex = null;
     const correctAdminPassword = "BOOM";
 
-    const operatorList = [
+    const operatorListDefaut = [
       "GCA-1 : Zero Azur","GCA-2 : Matt du 83","GCA-3 : Wolf","GCA-4 : Nico","GCA-5 : Brindas",
       "GCA-6 : Devil","GCA-7 : Antoine","GCA-8 : Baguettini","GCA-9 : MrPab","GCA-10 : Libre"
     ];
+
+    function chargerOperateurs(){
+      let saved = localStorage.getItem('eod_operators');
+      return saved ? JSON.parse(saved) : [...operatorListDefaut];
+    }
+
+    let operatorList = chargerOperateurs();
+
+    function sauvegarderOperateurs(){
+      localStorage.setItem('eod_operators', JSON.stringify(operatorList));
+    }
+
+    /* Reconstruit tous les <select> qui listent les opérateurs, en conservant
+       la sélection courante si l'opérateur existe toujours. */
+    function rafraichirSelectsOperateurs(){
+      ['operatorName2', 'operatorName3', 'briefLeader'].forEach(id => {
+        let sel = document.getElementById(id);
+        if (!sel) return;
+        let current = sel.value;
+        sel.innerHTML = operatorList.map(op => `<option value="${escapeAttr(op)}">${escapeHtml(op)}</option>`).join('');
+        if (operatorList.includes(current)) sel.value = current;
+      });
+      chargerCompteursVisuels();
+    }
+
+    function rendreUsersManageList(){
+      let container = document.getElementById('usersManageList');
+      if (!container) return;
+      container.innerHTML = operatorList.map((op, i) => `
+        <div class="edit-row">
+          <div class="edit-row-fields">
+            <div class="field"><label>Opérateur ${i + 1}</label><input type="text" id="userEdit_${i}" value="${escapeAttr(op)}"></div>
+          </div>
+          <button class="btn btn-ghost" style="width:auto; margin-top:22px; padding:8px 14px;" onclick="enregistrerRenommageOperateur(${i})">✎</button>
+          <button class="remove-row" onclick="supprimerOperateur(${i})" title="Supprimer">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function ajouterOperateur(){
+      playSound('click');
+      let input = document.getElementById('newOperatorInput');
+      let nom = input.value.trim();
+      let statusEl = document.getElementById('usersStatus');
+      if (!nom) { statusEl.style.color = 'var(--danger)'; statusEl.innerText = "● Le nom ne peut pas être vide."; return; }
+      if (operatorList.some(op => op.toLowerCase() === nom.toLowerCase())) {
+        statusEl.style.color = 'var(--danger)'; statusEl.innerText = "● Cet opérateur existe déjà.";
+        return;
+      }
+      operatorList.push(nom);
+      sauvegarderOperateurs();
+      rendreUsersManageList();
+      rafraichirSelectsOperateurs();
+      input.value = '';
+      statusEl.style.color = 'var(--hazard)';
+      statusEl.innerText = "● Opérateur ajouté.";
+      setTimeout(() => { statusEl.innerText = ""; }, 2000);
+    }
+
+    function enregistrerRenommageOperateur(i){
+      playSound('click');
+      let statusEl = document.getElementById('usersStatus');
+      let nouveauNom = document.getElementById('userEdit_' + i).value.trim();
+      let ancienNom = operatorList[i];
+      if (!nouveauNom) { statusEl.style.color = 'var(--danger)'; statusEl.innerText = "● Le nom ne peut pas être vide."; return; }
+      if (nouveauNom === ancienNom) { return; }
+      if (operatorList.some((op, idx) => idx !== i && op.toLowerCase() === nouveauNom.toLowerCase())) {
+        statusEl.style.color = 'var(--danger)'; statusEl.innerText = "● Un opérateur porte déjà ce nom.";
+        return;
+      }
+
+      // Migration des compteurs liés à l'ancien nom vers le nouveau
+      ['eod_count_', 'eod_weekly_count_'].forEach(prefix => {
+        let oldVal = localStorage.getItem(prefix + ancienNom.toLowerCase());
+        if (oldVal !== null) {
+          localStorage.setItem(prefix + nouveauNom.toLowerCase(), oldVal);
+          localStorage.removeItem(prefix + ancienNom.toLowerCase());
+        }
+      });
+
+      operatorList[i] = nouveauNom;
+      sauvegarderOperateurs();
+      rendreUsersManageList();
+      rafraichirSelectsOperateurs();
+      statusEl.style.color = 'var(--hazard)';
+      statusEl.innerText = "● Opérateur renommé.";
+      setTimeout(() => { statusEl.innerText = ""; }, 2000);
+    }
+
+    function supprimerOperateur(i){
+      if (operatorList.length <= 1) {
+        let statusEl = document.getElementById('usersStatus');
+        statusEl.style.color = 'var(--danger)'; statusEl.innerText = "● Impossible de supprimer le dernier opérateur.";
+        return;
+      }
+      playSound('click');
+      operatorList.splice(i, 1);
+      sauvegarderOperateurs();
+      rendreUsersManageList();
+      rafraichirSelectsOperateurs();
+    }
 
     function initAudio(){
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -991,6 +1155,8 @@
         document.getElementById('authContainer').style.display = 'none';
         document.getElementById('briefingAdminContent').style.display = 'block';
         chargerBriefingActuel();
+        rendreUsersManageList();
+        rafraichirSelectsOperateurs();
       } else {
         playSound('error');
         document.getElementById('authError').innerText = "● Mot de passe incorrect.";
@@ -1210,10 +1376,170 @@
       }, 1000);
     }
 
+    /* ============ RECRUTEMENT — ÉDITABLE DEPUIS LA PAGE ============ */
+    let recrutementData = null;
+    const recrutementDefaut = {
+      desc: "Zone réservée aux conditions d'admission et formulaire de candidature.",
+      cards: [
+        { title: "Prérequis", text: "Micro fonctionnel, disponibilité sessions RP, esprit d'équipe." },
+        { title: "Formation", text: "Détection, désamorçage, procédures de sécurisation de zone." },
+        { title: "Contact", text: "Voir l'onglet Liaison pour candidater." }
+      ]
+    };
+
+    function chargerRecrutement(){
+      let saved = localStorage.getItem('eod_page_recrutement');
+      recrutementData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(recrutementDefaut));
+      rendreRecrutementView();
+    }
+
+    function rendreRecrutementView(){
+      document.getElementById('recrutementDescView').innerText = recrutementData.desc;
+      let cardsHtml = recrutementData.cards.map(c =>
+        `<div class="card"><b>${escapeHtml(c.title)}</b><p>${escapeHtml(c.text)}</p></div>`
+      ).join('');
+      document.getElementById('recrutementCardsView').innerHTML = cardsHtml;
+    }
+
+    function rendreRecrutementEdit(){
+      document.getElementById('recrutementDescInput').value = recrutementData.desc;
+      let container = document.getElementById('recrutementCardsEdit');
+      container.innerHTML = recrutementData.cards.map((c, i) => `
+        <div class="edit-row">
+          <div class="edit-row-fields">
+            <div class="field"><label>Titre de la carte</label><input type="text" value="${escapeAttr(c.title)}" oninput="recrutementData.cards[${i}].title = this.value"></div>
+            <div class="field"><label>Texte</label><input type="text" value="${escapeAttr(c.text)}" oninput="recrutementData.cards[${i}].text = this.value"></div>
+          </div>
+          <button class="remove-row" onclick="supprimerCarteRecrutement(${i})" title="Supprimer">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function ajouterCarteRecrutement(){
+      recrutementData.cards.push({ title: "Nouvelle carte", text: "Texte à compléter..." });
+      rendreRecrutementEdit();
+    }
+
+    function supprimerCarteRecrutement(i){
+      recrutementData.cards.splice(i, 1);
+      rendreRecrutementEdit();
+    }
+
+    function toggleEditRecrutement(){
+      playSound('click');
+      rendreRecrutementEdit();
+      document.getElementById('recrutementView').style.display = 'none';
+      document.getElementById('recrutementEdit').style.display = 'block';
+      document.getElementById('recrutementEditBtn').style.display = 'none';
+    }
+
+    function annulerEditionRecrutement(){
+      playSound('click');
+      chargerRecrutement();
+      document.getElementById('recrutementView').style.display = 'block';
+      document.getElementById('recrutementEdit').style.display = 'none';
+      document.getElementById('recrutementEditBtn').style.display = 'inline-block';
+    }
+
+    function sauvegarderRecrutement(){
+      playSound('cut');
+      recrutementData.desc = document.getElementById('recrutementDescInput').value;
+      localStorage.setItem('eod_page_recrutement', JSON.stringify(recrutementData));
+      rendreRecrutementView();
+      document.getElementById('recrutementView').style.display = 'block';
+      document.getElementById('recrutementEdit').style.display = 'none';
+      document.getElementById('recrutementEditBtn').style.display = 'inline-block';
+    }
+
+    /* ============ LIAISON — ÉDITABLE DEPUIS LA PAGE ============ */
+    let liaisonData = null;
+    const liaisonDefaut = {
+      desc: "Zone réservée aux liens Discord / TeamSpeak / réseaux du groupe RP.",
+      links: [
+        { label: "Discord", url: "https://discord.gg/", note: "Serveur principal de la communauté" },
+        { label: "TeamSpeak", url: "", note: "Adresse du serveur vocal" }
+      ]
+    };
+
+    function chargerLiaison(){
+      let saved = localStorage.getItem('eod_page_liaison');
+      liaisonData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(liaisonDefaut));
+      rendreLiaisonView();
+    }
+
+    function rendreLiaisonView(){
+      document.getElementById('liaisonDescView').innerText = liaisonData.desc;
+      let linksHtml = liaisonData.links.map(l => {
+        let hasUrl = l.url && l.url.trim() !== '';
+        let urlLine = hasUrl ? `<a href="${escapeAttr(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.url)}</a>` : '<span style="color:var(--sand-dim);">Non renseigné</span>';
+        return `<div class="card"><b>${escapeHtml(l.label)}</b><p>${escapeHtml(l.note)}</p><p>${urlLine}</p></div>`;
+      }).join('');
+      document.getElementById('liaisonLinksView').innerHTML = linksHtml;
+    }
+
+    function rendreLiaisonEdit(){
+      document.getElementById('liaisonDescInput').value = liaisonData.desc;
+      let container = document.getElementById('liaisonLinksEdit');
+      container.innerHTML = liaisonData.links.map((l, i) => `
+        <div class="edit-row">
+          <div class="edit-row-fields">
+            <div class="field"><label>Nom du lien</label><input type="text" value="${escapeAttr(l.label)}" oninput="liaisonData.links[${i}].label = this.value"></div>
+            <div class="field"><label>URL</label><input type="text" value="${escapeAttr(l.url)}" placeholder="https://..." oninput="liaisonData.links[${i}].url = this.value"></div>
+            <div class="field"><label>Note</label><input type="text" value="${escapeAttr(l.note)}" oninput="liaisonData.links[${i}].note = this.value"></div>
+          </div>
+          <button class="remove-row" onclick="supprimerLienLiaison(${i})" title="Supprimer">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function ajouterLienLiaison(){
+      liaisonData.links.push({ label: "Nouveau lien", url: "", note: "" });
+      rendreLiaisonEdit();
+    }
+
+    function supprimerLienLiaison(i){
+      liaisonData.links.splice(i, 1);
+      rendreLiaisonEdit();
+    }
+
+    function toggleEditLiaison(){
+      playSound('click');
+      rendreLiaisonEdit();
+      document.getElementById('liaisonView').style.display = 'none';
+      document.getElementById('liaisonEdit').style.display = 'block';
+      document.getElementById('liaisonEditBtn').style.display = 'none';
+    }
+
+    function annulerEditionLiaison(){
+      playSound('click');
+      chargerLiaison();
+      document.getElementById('liaisonView').style.display = 'block';
+      document.getElementById('liaisonEdit').style.display = 'none';
+      document.getElementById('liaisonEditBtn').style.display = 'inline-block';
+    }
+
+    function sauvegarderLiaison(){
+      playSound('cut');
+      liaisonData.desc = document.getElementById('liaisonDescInput').value;
+      localStorage.setItem('eod_page_liaison', JSON.stringify(liaisonData));
+      rendreLiaisonView();
+      document.getElementById('liaisonView').style.display = 'block';
+      document.getElementById('liaisonEdit').style.display = 'none';
+      document.getElementById('liaisonEditBtn').style.display = 'inline-block';
+    }
+
+    function escapeHtml(str){
+      return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function escapeAttr(str){ return escapeHtml(str); }
+
     /* ============ INIT ============ */
     document.addEventListener("DOMContentLoaded", function() {
+      rafraichirSelectsOperateurs();
       chargerCompteursVisuels();
       chargerBriefingActuel();
+      chargerRecrutement();
+      chargerLiaison();
     });
   </script>
 
