@@ -348,6 +348,14 @@
     color:var(--sand-dim);
   }
   footer .cls{color:var(--danger);}
+  .easter-egg{
+    display:inline-block;
+    width:10px; height:10px;
+    margin-left:8px;
+    cursor:default;
+    color:var(--panel);
+    user-select:none;
+  }
 
   /* ============ MODULES FONCTIONNELS EOD ============ */
   .calc-layout{display:grid; grid-template-columns:1fr; gap:22px;}
@@ -897,9 +905,26 @@
   <footer>
     <span class="cls">[ CONTENU FICTIF — ROLEPLAY ARMA REFORGER ]</span><br>
     COMMANDO HUBERT — SECTION GÉNIE / DÉMINAGE · DOCUMENT NON CLASSIFIÉ
+    <span class="easter-egg" onclick="afficherEasterEgg()">·</span>
   </footer>
 
+  <div class="modal-overlay" id="easterEggModal">
+    <div class="modal-window">
+      <div class="modal-title">// TRANSMISSION NON RÉFÉRENCÉE</div>
+      <div class="modal-text" style="font-size:16px; color:var(--paper); margin:10px 0 16px;">All my homies hate Gizmo</div>
+      <div class="modal-buttons">
+        <button class="validate" onclick="document.getElementById('easterEggModal').style.display='none'">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /* ============ EASTER EGG CACHÉ ============ */
+    function afficherEasterEgg(){
+      playSound('click');
+      document.getElementById('easterEggModal').style.display = 'flex';
+    }
+
     /* ============ HORLOGE HUD ============ */
     function updateClock(){
       const now = new Date();
@@ -1532,13 +1557,29 @@
     }
 
     /* ============ ORGANIGRAMME MILITAIRE (EFFECTIF) ============ */
-    const gradesOrg = ["Soldat","Caporal","Caporal-chef","Sergent","Sergent-chef","Adjudant","Adjudant-chef","Lieutenant","Capitaine","Commandant"];
+    const gradesOrg = [
+      "Mousse (M)",
+      "Matelot (MAT)",
+      "Matelot breveté (MAT BVT)",
+      "Quartier-Maître 2nde classe (QM2)",
+      "Quartier-Maître 1ère classe (QM1)",
+      "Second Maître (SM)",
+      "Maître (ME)",
+      "Premier Maître (PM)",
+      "Maître Principal (MP)",
+      "Major (MAJ)",
+      "Enseigne de vaisseau de 1ère classe (LTN)",
+      "Lieutenant de vaisseau (CAP)",
+      "Capitaine de corvette (CDT)",
+      "Vice-amiral (VA)",
+      "Amiral (A)"
+    ];
 
     const orgDataDefaut = [
-      { id: 1, name: "Zero Azur", grade: "Lieutenant", specialty: "Chef de section", parentId: null },
-      { id: 2, name: "Matt du 83", grade: "Sergent-chef", specialty: "Adjoint / Détection", parentId: 1 },
-      { id: 3, name: "Wolf", grade: "Sergent", specialty: "Neutralisation IED", parentId: 1 },
-      { id: 4, name: "Nico", grade: "Caporal-chef", specialty: "Déminage terrain", parentId: 3 }
+      { id: 1, name: "Zero Azur", grade: "Capitaine de corvette (CDT)", specialty: "Chef de section", parentId: null },
+      { id: 2, name: "Matt du 83", grade: "Maître Principal (MP)", specialty: "Adjoint / Détection", parentId: 1 },
+      { id: 3, name: "Wolf", grade: "Second Maître (SM)", specialty: "Neutralisation IED", parentId: 1 },
+      { id: 4, name: "Nico", grade: "Quartier-Maître 1ère classe (QM1)", specialty: "Déminage terrain", parentId: 3 }
     ];
 
     let orgData = [];
