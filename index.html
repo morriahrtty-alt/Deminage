@@ -445,6 +445,52 @@
   .card a{color:var(--hazard); text-decoration:none; word-break:break-all;}
   .card a:hover{text-decoration:underline;}
 
+  /* ============ ORGANIGRAMME MILITAIRE (EFFECTIF) ============ */
+  .org-chart-scroll{overflow-x:auto; padding:30px 10px;}
+  .org-tree, .org-tree ul{list-style:none; margin:0; padding:0; position:relative;}
+  .org-tree{display:flex; justify-content:center; min-width:fit-content;}
+  .org-tree ul{display:flex; padding-top:30px; position:relative;}
+  .org-tree li{display:flex; flex-direction:column; align-items:center; position:relative; padding:30px 12px 0 12px;}
+  .org-tree li::before, .org-tree li::after{content:''; position:absolute; top:0; right:50%; border-top:1px solid var(--line); width:50%; height:30px;}
+  .org-tree li::after{right:auto; left:50%; border-left:1px solid var(--line);}
+  .org-tree li:only-child::after, .org-tree li:only-child::before{display:none;}
+  .org-tree li:only-child{padding-top:0;}
+  .org-tree li:first-child::before, .org-tree li:last-child::after{border:0 none;}
+  .org-tree li:last-child::before{border-right:1px solid var(--line); border-radius:0 4px 0 0;}
+  .org-tree li:first-child::after{border-radius:4px 0 0 0;}
+  .org-tree ul::before{content:''; position:absolute; top:0; left:50%; border-left:1px solid var(--line); width:0; height:30px;}
+
+  .org-card{
+    display:inline-flex; flex-direction:column; align-items:center; gap:2px;
+    background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--hazard);
+    padding:12px 16px; min-width:150px; position:relative; z-index:2;
+  }
+  .org-grade{font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--hazard);}
+  .org-name{font-size:15px; color:var(--paper); font-weight:600; margin-top:2px; white-space:nowrap;}
+  .org-spec{font-size:11px; color:var(--sand-dim); margin-top:2px; text-align:center;}
+  .org-actions{display:flex; gap:6px; margin-top:8px;}
+  .org-actions button{width:22px; height:22px; border:1px solid var(--line); background:var(--panel-2); color:var(--sand); font-size:10px; cursor:pointer; border-radius:2px;}
+  .org-actions button:hover{border-color:var(--hazard); color:var(--paper);}
+  .org-card-edit{border-top-color:var(--hazard-2); gap:6px; min-width:190px;}
+  .org-card-edit input, .org-card-edit select{
+    width:100%; background:var(--void); border:1px solid var(--line); color:var(--paper);
+    padding:5px 7px; font-family:'JetBrains Mono',monospace; font-size:11px; border-radius:2px;
+  }
+  .org-edit-actions{display:flex; gap:6px; margin-top:4px;}
+  .org-edit-actions button{width:26px; height:22px; border:1px solid var(--hazard); background:transparent; color:var(--hazard); cursor:pointer; font-size:10px; border-radius:2px;}
+  .org-edit-actions button:hover{background:var(--hazard); color:var(--void);}
+
+  /* ============ RÉSULTAT D'INTERVENTION (IED CABLE / TUYAUX) ============ */
+  .outcome-box{margin-top:18px; background:var(--panel); border:1px solid var(--line); padding:16px; text-align:center;}
+  .outcome-question{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--hazard); margin-bottom:12px;}
+  .outcome-box .btn-row .btn{font-size:11px;}
+  .btn-success{background:linear-gradient(135deg, #6f8f3f, #3f5722); border-color:#6f8f3f;}
+  .outcome-confirmed{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--hazard);}
+
+  /* ============ CONFIRMATION DE RÉINITIALISATION ============ */
+  .confirm-reset-row{display:flex; gap:8px; margin-top:12px;}
+  .confirm-reset-row .btn{margin-top:0;}
+
   @media (prefers-reduced-motion: reduce){
     .ticker, .status .dot, .tab-panel{animation:none !important;}
   }
@@ -545,13 +591,26 @@
           </div>
           <button class="btn" onclick="lancerAnalyse()">Exécuter l'analyse</button>
           <div id="resultat" class="result-box">&gt; Système prêt. En attente des paramètres de câblage...</div>
+
+          <div class="outcome-box" id="outcomeCable" style="display:none;"></div>
         </div>
         <div>
           <div class="side-box">
             <h4>IED désamorcés</h4>
             <div class="counter-num" id="usageCounterDisplayCable">0</div>
             <div class="counter-label">Total — opérateur sélectionné</div>
-            <button class="btn btn-ghost" style="margin-top:12px;" onclick="resetCompteur()">Réinitialiser</button>
+          </div>
+          <div class="side-box">
+            <h4>IED explosés</h4>
+            <div class="counter-num" id="explodedCounterDisplayCable" style="color:var(--danger);">0</div>
+            <div class="counter-label">Total — opérateur sélectionné</div>
+          </div>
+          <div class="side-box">
+            <button class="btn btn-ghost" id="resetBtnCable" onclick="demanderResetCompteur('cable')">Réinitialiser mon décompte</button>
+            <div class="confirm-reset-row" id="resetConfirmCable" style="display:none;">
+              <button class="btn btn-danger" style="margin-top:0;" onclick="confirmerResetCompteur('cable')">Confirmer</button>
+              <button class="btn btn-ghost" style="margin-top:0;" onclick="annulerResetCompteur('cable')">Annuler</button>
+            </div>
           </div>
           <div class="side-box">
             <h4>Règles correspondantes</h4>
@@ -610,13 +669,26 @@
           </div>
           <button class="btn" onclick="calculerBombeTuyau()">Calculer le code / action</button>
           <div id="resultat-pipe" class="result-box">&gt; Entrez les paramètres de l'IED tuyaux...</div>
+
+          <div class="outcome-box" id="outcomeTuyaux" style="display:none;"></div>
         </div>
         <div>
           <div class="side-box">
             <h4>IED désamorcés</h4>
             <div class="counter-num" id="usageCounterDisplayPipe">0</div>
             <div class="counter-label">Total — opérateur sélectionné</div>
-            <button class="btn btn-ghost" style="margin-top:12px;" onclick="resetCompteur()">Réinitialiser</button>
+          </div>
+          <div class="side-box">
+            <h4>IED explosés</h4>
+            <div class="counter-num" id="explodedCounterDisplayPipe" style="color:var(--danger);">0</div>
+            <div class="counter-label">Total — opérateur sélectionné</div>
+          </div>
+          <div class="side-box">
+            <button class="btn btn-ghost" id="resetBtnPipe" onclick="demanderResetCompteur('pipe')">Réinitialiser mon décompte</button>
+            <div class="confirm-reset-row" id="resetConfirmPipe" style="display:none;">
+              <button class="btn btn-danger" style="margin-top:0;" onclick="confirmerResetCompteur('pipe')">Confirmer</button>
+              <button class="btn btn-ghost" style="margin-top:0;" onclick="annulerResetCompteur('pipe')">Annuler</button>
+            </div>
           </div>
           <div class="side-box">
             <h4>Détail du calcul</h4>
@@ -667,9 +739,30 @@
     <!-- 06 EFFECTIF -->
     <div class="tab-panel" id="effectif">
       <div class="panel-head"><span class="code">DOC 05</span><h3>Effectif</h3></div>
-      <div class="placeholder-slot">
-        <!-- Zone réservée à l'organigramme / trombinoscope de la section -->
-        Zone réservée à l'organigramme / trombinoscope de la section.
+
+      <div class="lock-screen" id="orgLockRow" style="margin-bottom:24px; padding:24px;">
+        <div class="icon" style="margin-bottom:12px;">🔒 Modification de l'organigramme protégée par mot de passe</div>
+        <div class="field" style="max-width:280px; margin:0 auto 14px;">
+          <label for="orgPassword">Mot de passe</label>
+          <input type="password" id="orgPassword" placeholder="••••••••" onkeydown="if(event.key === 'Enter') verifierMotDePasseOrg()">
+        </div>
+        <button class="btn" style="max-width:280px; margin:0 auto;" onclick="verifierMotDePasseOrg()">Déverrouiller l'édition</button>
+        <div id="orgLockError" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--danger); margin-top:10px; min-height:14px;"></div>
+      </div>
+
+      <div class="edit-row" id="orgAddRow" style="align-items:flex-end; display:none;">
+        <div class="edit-row-fields" style="flex-direction:row; flex-wrap:wrap; gap:12px;">
+          <div class="field" style="flex:1; min-width:170px; margin-bottom:0;"><label for="orgNameInput">Nom</label><input type="text" id="orgNameInput" placeholder="Ex : Jean Dupont"></div>
+          <div class="field" style="flex:1; min-width:150px; margin-bottom:0;"><label for="orgGradeInput">Grade</label><select id="orgGradeInput"></select></div>
+          <div class="field" style="flex:1; min-width:170px; margin-bottom:0;"><label for="orgSpecInput">Spécialité</label><input type="text" id="orgSpecInput" placeholder="Ex : Détection"></div>
+          <div class="field" style="flex:1; min-width:190px; margin-bottom:0;"><label for="orgParentInput">Supérieur direct</label><select id="orgParentInput"></select></div>
+        </div>
+        <button class="btn" style="width:auto; margin-top:0; padding:10px 20px;" onclick="ajouterMembreOrg()">+ Ajouter</button>
+      </div>
+      <div class="status-flash" id="orgStatus"></div>
+
+      <div class="org-chart-scroll">
+        <ul class="org-tree" id="orgChartContainer"></ul>
       </div>
     </div>
 
@@ -1052,37 +1145,49 @@
 
     function getOperatorKey(){ return 'eod_count_' + getSelectedOperator().toLowerCase(); }
     function getWeeklyOperatorKey(){ return 'eod_weekly_count_' + getSelectedOperator().toLowerCase(); }
+    function getExplodedKey(){ return 'eod_exploded_' + getSelectedOperator().toLowerCase(); }
+    function getWeeklyExplodedKey(){ return 'eod_weekly_exploded_' + getSelectedOperator().toLowerCase(); }
 
-    function enregistrerLog(typeIED){
+    function enregistrerLog(typeIED, resultat){
       let opName = getSelectedOperator();
       let logs = JSON.parse(localStorage.getItem('eod_logs') || '[]');
-      logs.unshift({ date: new Date().toLocaleString('fr-FR'), operator: opName, type: typeIED });
+      logs.unshift({ date: new Date().toLocaleString('fr-FR'), operator: opName, type: typeIED, resultat: resultat || '—' });
       if (logs.length > 100) logs.pop();
       localStorage.setItem('eod_logs', JSON.stringify(logs));
     }
 
-    function incrementerCompteur(typeIED){
+    /* Enregistre le résultat réel d'une intervention (choisi par l'opérateur
+       après avoir vu l'analyse) : 'desamorce' ou 'explose'. */
+    function confirmerResultatIED(typeIED, resultat){
       verifierResetHebdomadaire();
-      let key = getOperatorKey();
-      let count = (parseInt(localStorage.getItem(key)) || 0) + 1;
-      localStorage.setItem(key, count);
-
-      let weeklyKey = getWeeklyOperatorKey();
-      let weeklyCount = (parseInt(localStorage.getItem(weeklyKey)) || 0) + 1;
-      localStorage.setItem(weeklyKey, weeklyCount);
-
-      enregistrerLog(typeIED);
+      if (resultat === 'desamorce') {
+        let key = getOperatorKey();
+        localStorage.setItem(key, (parseInt(localStorage.getItem(key)) || 0) + 1);
+        let weeklyKey = getWeeklyOperatorKey();
+        localStorage.setItem(weeklyKey, (parseInt(localStorage.getItem(weeklyKey)) || 0) + 1);
+        enregistrerLog(typeIED, 'Désamorcé');
+      } else {
+        let key = getExplodedKey();
+        localStorage.setItem(key, (parseInt(localStorage.getItem(key)) || 0) + 1);
+        let weeklyKey = getWeeklyExplodedKey();
+        localStorage.setItem(weeklyKey, (parseInt(localStorage.getItem(weeklyKey)) || 0) + 1);
+        enregistrerLog(typeIED, 'Explosé');
+      }
       chargerCompteursVisuels();
     }
 
     function chargerCompteursVisuels(){
       verifierResetHebdomadaire();
-      let key = getOperatorKey();
-      let count = parseInt(localStorage.getItem(key)) || 0;
+      let count = parseInt(localStorage.getItem(getOperatorKey())) || 0;
+      let exploded = parseInt(localStorage.getItem(getExplodedKey())) || 0;
       let d1 = document.getElementById('usageCounterDisplayCable');
       let d2 = document.getElementById('usageCounterDisplayPipe');
+      let e1 = document.getElementById('explodedCounterDisplayCable');
+      let e2 = document.getElementById('explodedCounterDisplayPipe');
       if (d1) d1.innerText = count;
       if (d2) d2.innerText = count;
+      if (e1) e1.innerText = exploded;
+      if (e2) e2.innerText = exploded;
     }
 
     function changerOperateur(sourceId){
@@ -1095,25 +1200,71 @@
       chargerCompteursVisuels();
     }
 
-    function resetCompteur(){
+    /* ============ CHOIX DU RÉSULTAT APRÈS ANALYSE ============ */
+    function afficherChoixResultat(page){
+      let boxId = page === 'cable' ? 'outcomeCable' : 'outcomeTuyaux';
+      let box = document.getElementById(boxId);
+      box.innerHTML = `
+        <div class="outcome-question">Quel a été le résultat de l'intervention ?</div>
+        <div class="btn-row">
+          <button class="btn btn-success" onclick="choisirResultatIED('${page}','desamorce')">✅ Désamorcé</button>
+          <button class="btn btn-danger" onclick="choisirResultatIED('${page}','explose')">💥 Explosé</button>
+        </div>
+      `;
+      box.style.display = 'block';
+    }
+
+    function choisirResultatIED(page, resultat){
+      playSound(resultat === 'desamorce' ? 'success' : 'error');
+      let typeIED = page === 'cable' ? 'IED Cable' : 'IED Tuyaux';
+      confirmerResultatIED(typeIED, resultat);
+      let boxId = page === 'cable' ? 'outcomeCable' : 'outcomeTuyaux';
+      let box = document.getElementById(boxId);
+      box.innerHTML = resultat === 'desamorce'
+        ? `<div class="outcome-confirmed" style="color:var(--ok);">✅ Résultat enregistré : Désamorcé.</div>`
+        : `<div class="outcome-confirmed" style="color:var(--danger);">💥 Résultat enregistré : Explosé.</div>`;
+    }
+
+    /* ============ RÉINITIALISATION DU DÉCOMPTE PERSO (avec confirmation) ============ */
+    function demanderResetCompteur(page){
       playSound('click');
+      let btnId = page === 'cable' ? 'resetBtnCable' : 'resetBtnPipe';
+      let confirmId = page === 'cable' ? 'resetConfirmCable' : 'resetConfirmPipe';
+      document.getElementById(btnId).style.display = 'none';
+      document.getElementById(confirmId).style.display = 'flex';
+    }
+
+    function annulerResetCompteur(page){
+      playSound('click');
+      let btnId = page === 'cable' ? 'resetBtnCable' : 'resetBtnPipe';
+      let confirmId = page === 'cable' ? 'resetConfirmCable' : 'resetConfirmPipe';
+      document.getElementById(confirmId).style.display = 'none';
+      document.getElementById(btnId).style.display = 'block';
+    }
+
+    function confirmerResetCompteur(page){
+      playSound('cut');
       localStorage.setItem(getOperatorKey(), 0);
       localStorage.setItem(getWeeklyOperatorKey(), 0);
+      localStorage.setItem(getExplodedKey(), 0);
+      localStorage.setItem(getWeeklyExplodedKey(), 0);
       chargerCompteursVisuels();
+      annulerResetCompteur(page);
     }
 
     function chargerStatsGlobales(){
       verifierResetHebdomadaire();
       let box = document.getElementById('globalStatsBox');
-      let html = "<table class='mini-table'><tr><th>Opérateur</th><th style='text-align:right;'>Hebdo</th><th style='text-align:right;'>Total</th></tr>";
-      let totalHebdo = 0, totalGeneral = 0;
+      let html = "<table class='mini-table'><tr><th>Opérateur</th><th style='text-align:right;'>Désam. hebdo</th><th style='text-align:right;'>Désam. total</th><th style='text-align:right; color:var(--danger);'>Explosés</th></tr>";
+      let totalHebdo = 0, totalGeneral = 0, totalExplosés = 0;
       operatorList.forEach(op => {
         let count = parseInt(localStorage.getItem('eod_count_' + op.toLowerCase())) || 0;
         let weeklyCount = parseInt(localStorage.getItem('eod_weekly_count_' + op.toLowerCase())) || 0;
-        totalGeneral += count; totalHebdo += weeklyCount;
-        html += `<tr><td>${op}</td><td style="text-align:right; color:var(--hazard);">${weeklyCount}</td><td style="text-align:right; color:var(--paper);">${count}</td></tr>`;
+        let exploded = parseInt(localStorage.getItem('eod_exploded_' + op.toLowerCase())) || 0;
+        totalGeneral += count; totalHebdo += weeklyCount; totalExplosés += exploded;
+        html += `<tr><td>${op}</td><td style="text-align:right; color:var(--hazard);">${weeklyCount}</td><td style="text-align:right; color:var(--paper);">${count}</td><td style="text-align:right; color:var(--danger);">${exploded}</td></tr>`;
       });
-      html += `<tr style="font-weight:700;"><td style="color:var(--hazard);">TOTAL</td><td style="text-align:right; color:var(--hazard);">${totalHebdo}</td><td style="text-align:right; color:var(--paper);">${totalGeneral}</td></tr>`;
+      html += `<tr style="font-weight:700;"><td style="color:var(--hazard);">TOTAL</td><td style="text-align:right; color:var(--hazard);">${totalHebdo}</td><td style="text-align:right; color:var(--paper);">${totalGeneral}</td><td style="text-align:right; color:var(--danger);">${totalExplosés}</td></tr>`;
       html += "</table>";
       box.innerHTML = html;
     }
@@ -1131,13 +1282,14 @@
       let filter = document.getElementById('logFilter').value;
       let logs = JSON.parse(localStorage.getItem('eod_logs') || '[]');
       let box = document.getElementById('logsBox');
-      let html = "<table class='mini-table'><tr><th>Date</th><th>Op.</th><th>Type</th></tr>";
+      let html = "<table class='mini-table'><tr><th>Date</th><th>Op.</th><th>Type</th><th>Résultat</th></tr>";
       let filtered = logs.filter(log => filter === 'ALL' || log.operator === filter);
       if (filtered.length === 0) {
-        html += `<tr><td colspan="3" style="text-align:center; color:var(--sand-dim);">Aucun log.</td></tr>`;
+        html += `<tr><td colspan="4" style="text-align:center; color:var(--sand-dim);">Aucun log.</td></tr>`;
       } else {
         filtered.forEach(log => {
-          html += `<tr><td style="color:var(--sand-dim);">${log.date}</td><td>${log.operator}</td><td style="color:var(--hazard);">${log.type}</td></tr>`;
+          let resultatColor = log.resultat === 'Explosé' ? 'var(--danger)' : (log.resultat === 'Désamorcé' ? 'var(--ok)' : 'var(--sand-dim)');
+          html += `<tr><td style="color:var(--sand-dim);">${log.date}</td><td>${log.operator}</td><td style="color:var(--hazard);">${log.type}</td><td style="color:${resultatColor};">${log.resultat || '—'}</td></tr>`;
         });
       }
       html += "</table>";
@@ -1299,10 +1451,10 @@
     /* ============ CALCULATEUR IED TUYAUX ============ */
     function calculerBombeTuyau(){
       playSound('click');
-      incrementerCompteur('IED Tuyaux');
       let resultatDiv = document.getElementById('resultat-pipe');
       let sideDiv = document.getElementById('sideRulesContentPipe');
       resultatDiv.innerHTML = "⏳ Analyse...";
+      document.getElementById('outcomeTuyaux').style.display = 'none';
 
       setTimeout(() => {
         let pvc = parseInt(document.getElementById('pvc').value) || 0;
@@ -1315,15 +1467,16 @@
 
         resultatDiv.innerHTML = `<strong>💣 SOMME : ${sommeTotal}</strong>`;
         sideDiv.innerHTML = `<div class="rule-entry">Résultat brut : ${sommeTotal}</div>`;
+        afficherChoixResultat('pipe');
       }, 600);
     }
 
     /* ============ CALCULATEUR IED CABLE ============ */
     function lancerAnalyse(){
       playSound('click');
-      incrementerCompteur('IED Cable');
       let resultatDiv = document.getElementById('resultat');
       let sideDiv = document.getElementById('sideRulesContentCable');
+      document.getElementById('outcomeCable').style.display = 'none';
 
       resultatDiv.innerHTML = "⏳ Analyse de la matrice de câblage en cours (1s)...";
       sideDiv.innerHTML = "<div class='rule-entry'><strong>[Traitement]</strong><br>Analyse des liaisons en cours...</div>";
@@ -1360,6 +1513,7 @@
           playSound('error');
           resultatDiv.innerHTML = "🎲 ALERTE : Aucune correspondance - Procédure Aléatoire d'Urgence";
           sideDiv.innerHTML = "<div class='rule-entry'><strong>[Règle d'Urgence]</strong><br>Aucune correspondance standard trouvée dans la matrice.</div>";
+          afficherChoixResultat('cable');
           return;
         }
 
@@ -1373,7 +1527,178 @@
         mainHtml += "</ul>";
         resultatDiv.innerHTML = mainHtml;
         sideDiv.innerHTML = sideHtml;
+        afficherChoixResultat('cable');
       }, 1000);
+    }
+
+    /* ============ ORGANIGRAMME MILITAIRE (EFFECTIF) ============ */
+    const gradesOrg = ["Soldat","Caporal","Caporal-chef","Sergent","Sergent-chef","Adjudant","Adjudant-chef","Lieutenant","Capitaine","Commandant"];
+
+    const orgDataDefaut = [
+      { id: 1, name: "Zero Azur", grade: "Lieutenant", specialty: "Chef de section", parentId: null },
+      { id: 2, name: "Matt du 83", grade: "Sergent-chef", specialty: "Adjoint / Détection", parentId: 1 },
+      { id: 3, name: "Wolf", grade: "Sergent", specialty: "Neutralisation IED", parentId: 1 },
+      { id: 4, name: "Nico", grade: "Caporal-chef", specialty: "Déminage terrain", parentId: 3 }
+    ];
+
+    let orgData = [];
+    let orgEditingId = null;
+    let orgUnlocked = false;
+
+    function verifierMotDePasseOrg(){
+      playSound('click');
+      let pwd = document.getElementById('orgPassword').value;
+      if (pwd === correctAdminPassword) {
+        orgUnlocked = true;
+        document.getElementById('orgLockRow').style.display = 'none';
+        document.getElementById('orgAddRow').style.display = 'flex';
+        rendreOrganigramme();
+      } else {
+        playSound('error');
+        document.getElementById('orgLockError').innerText = "● Mot de passe incorrect.";
+      }
+    }
+
+    function peuplerSelectGrade(){
+      let sel = document.getElementById('orgGradeInput');
+      if (sel) sel.innerHTML = gradesOrg.map(g => `<option value="${g}">${g}</option>`).join('');
+    }
+
+    function chargerOrganigramme(){
+      let saved = localStorage.getItem('eod_orgchart');
+      orgData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(orgDataDefaut));
+      rendreOrganigramme();
+    }
+
+    function sauvegarderOrganigramme(){
+      localStorage.setItem('eod_orgchart', JSON.stringify(orgData));
+    }
+
+    function peuplerSelectSuperieur(){
+      let sel = document.getElementById('orgParentInput');
+      if (!sel) return;
+      let current = sel.value;
+      sel.innerHTML = '<option value="">— Aucun (chef de section) —</option>' +
+        orgData.map(m => `<option value="${m.id}">${escapeHtml(m.grade)} ${escapeHtml(m.name)}</option>`).join('');
+      if ([...sel.options].some(o => o.value === current)) sel.value = current;
+    }
+
+    function buildOrgNode(member){
+      let children = orgData.filter(m => m.parentId === member.id);
+      let childrenHtml = children.length ? `<ul>${children.map(buildOrgNode).join('')}</ul>` : '';
+      let cardHtml;
+
+      if (orgEditingId === member.id) {
+        cardHtml = `
+          <div class="org-card org-card-edit">
+            <input type="text" id="orgEditName" value="${escapeAttr(member.name)}" placeholder="Nom">
+            <select id="orgEditGrade">${gradesOrg.map(g => `<option value="${g}" ${g === member.grade ? 'selected' : ''}>${g}</option>`).join('')}</select>
+            <input type="text" id="orgEditSpec" value="${escapeAttr(member.specialty || '')}" placeholder="Spécialité">
+            <div class="org-edit-actions">
+              <button onclick="sauvegarderMembreOrg(${member.id})" title="Enregistrer">✓</button>
+              <button onclick="annulerEditMembreOrg()" title="Annuler">✕</button>
+            </div>
+          </div>`;
+      } else {
+        let actionsHtml = orgUnlocked ? `
+            <div class="org-actions">
+              <button onclick="toggleEditMembreOrg(${member.id})" title="Modifier">✎</button>
+              <button onclick="supprimerMembreOrg(${member.id})" title="Supprimer">✕</button>
+            </div>` : '';
+        cardHtml = `
+          <div class="org-card">
+            <div class="org-grade">${escapeHtml(member.grade)}</div>
+            <div class="org-name">${escapeHtml(member.name)}</div>
+            <div class="org-spec">${escapeHtml(member.specialty || '')}</div>
+            ${actionsHtml}
+          </div>`;
+      }
+      return `<li>${cardHtml}${childrenHtml}</li>`;
+    }
+
+    function rendreOrganigramme(){
+      let container = document.getElementById('orgChartContainer');
+      if (!container) return;
+      let roots = orgData.filter(m => m.parentId === null);
+      container.innerHTML = roots.length
+        ? roots.map(buildOrgNode).join('')
+        : '<li><div class="org-card" style="opacity:.5;">Aucun membre. Ajoutez le premier ci-dessus.</div></li>';
+      peuplerSelectSuperieur();
+    }
+
+    function ajouterMembreOrg(){
+      if (!orgUnlocked) return;
+      playSound('click');
+      let nameInput = document.getElementById('orgNameInput');
+      let name = nameInput.value.trim();
+      let grade = document.getElementById('orgGradeInput').value;
+      let spec = document.getElementById('orgSpecInput').value.trim();
+      let parentVal = document.getElementById('orgParentInput').value;
+      let statusEl = document.getElementById('orgStatus');
+
+      if (!name) {
+        statusEl.style.color = 'var(--danger)';
+        statusEl.innerText = "● Le nom est requis.";
+        return;
+      }
+
+      orgData.push({
+        id: Date.now(),
+        name: name,
+        grade: grade,
+        specialty: spec,
+        parentId: parentVal ? parseInt(parentVal) : null
+      });
+      sauvegarderOrganigramme();
+      rendreOrganigramme();
+
+      nameInput.value = '';
+      document.getElementById('orgSpecInput').value = '';
+      statusEl.style.color = 'var(--hazard)';
+      statusEl.innerText = "● Membre ajouté à l'organigramme.";
+      setTimeout(() => { statusEl.innerText = ""; }, 2000);
+    }
+
+    function toggleEditMembreOrg(id){
+      if (!orgUnlocked) return;
+      playSound('click');
+      orgEditingId = id;
+      rendreOrganigramme();
+    }
+
+    function annulerEditMembreOrg(){
+      playSound('click');
+      orgEditingId = null;
+      rendreOrganigramme();
+    }
+
+    function sauvegarderMembreOrg(id){
+      if (!orgUnlocked) return;
+      playSound('cut');
+      let m = orgData.find(x => x.id === id);
+      if (!m) return;
+      let newName = document.getElementById('orgEditName').value.trim();
+      m.name = newName || m.name;
+      m.grade = document.getElementById('orgEditGrade').value;
+      m.specialty = document.getElementById('orgEditSpec').value.trim();
+      orgEditingId = null;
+      sauvegarderOrganigramme();
+      rendreOrganigramme();
+    }
+
+    function supprimerOperateurOrg(id){ /* alias de sécurité, non utilisé */ }
+
+    function supprimerMembreOrg(id){
+      if (!orgUnlocked) return;
+      playSound('click');
+      let m = orgData.find(x => x.id === id);
+      if (!m) return;
+      // Les subordonnés directs remontent au supérieur du membre supprimé, pour ne pas les orphelins.
+      orgData.forEach(x => { if (x.parentId === id) x.parentId = m.parentId; });
+      orgData = orgData.filter(x => x.id !== id);
+      if (orgEditingId === id) orgEditingId = null;
+      sauvegarderOrganigramme();
+      rendreOrganigramme();
     }
 
     /* ============ RECRUTEMENT — ÉDITABLE DEPUIS LA PAGE ============ */
@@ -1540,6 +1865,8 @@
       chargerBriefingActuel();
       chargerRecrutement();
       chargerLiaison();
+      peuplerSelectGrade();
+      chargerOrganigramme();
     });
   </script>
 
