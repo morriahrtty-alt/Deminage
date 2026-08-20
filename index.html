@@ -488,6 +488,17 @@
   .org-edit-actions button{width:26px; height:22px; border:1px solid var(--hazard); background:transparent; color:var(--hazard); cursor:pointer; font-size:10px; border-radius:2px;}
   .org-edit-actions button:hover{background:var(--hazard); color:var(--void);}
 
+  .org-card[draggable="true"]{cursor:grab;}
+  .org-card[draggable="true"]:active{cursor:grabbing;}
+  .org-card.org-dragging{opacity:.35;}
+  .org-card.org-drop-target{border-color:var(--hazard-2); box-shadow:0 0 0 2px var(--hazard-2) inset; background:var(--panel-2);}
+  .org-root-drop{
+    border:1px dashed var(--line); background:repeating-linear-gradient(135deg, transparent 0 18px, rgba(255,255,255,0.015) 18px 36px);
+    padding:14px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sand-dim);
+    letter-spacing:.04em; margin-bottom:6px; transition:border-color .15s, color .15s;
+  }
+  .org-root-drop.org-drop-target{border-color:var(--hazard-2); color:var(--paper); background:var(--panel-2);}
+
   /* ============ RÉSULTAT D'INTERVENTION (IED CABLE / TUYAUX) ============ */
   .outcome-box{margin-top:18px; background:var(--panel); border:1px solid var(--line); padding:16px; text-align:center;}
   .outcome-question{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--hazard); margin-bottom:12px;}
@@ -768,6 +779,10 @@
         <button class="btn" style="width:auto; margin-top:0; padding:10px 20px;" onclick="ajouterMembreOrg()">+ Ajouter</button>
       </div>
       <div class="status-flash" id="orgStatus"></div>
+
+      <div class="org-root-drop" id="orgRootDropZone" style="display:none;" ondragover="orgDragOver(event)" ondragleave="orgDragLeave(event)" ondrop="orgDropRoot(event)">
+        ⬇ Déposez un membre ici pour en faire un chef de section (racine, sans supérieur)
+      </div>
 
       <div class="org-chart-scroll">
         <ul class="org-tree" id="orgChartContainer"></ul>
@@ -1646,8 +1661,11 @@
               <button onclick="toggleEditMembreOrg(${member.id})" title="Modifier">✎</button>
               <button onclick="supprimerMembreOrg(${member.id})" title="Supprimer">✕</button>
             </div>` : '';
+        let dragAttrs = orgUnlocked
+          ? `draggable="true" ondragstart="orgDragStart(event, ${member.id})" ondragover="orgDragOver(event)" ondragleave="orgDragLeave(event)" ondrop="orgDrop(event, ${member.id})" ondragend="orgDragEnd(event)"`
+          : '';
         cardHtml = `
-          <div class="org-card">
+          <div class="org-card" data-org-id="${member.id}" ${dragAttrs}>
             <div class="org-grade">${escapeHtml(member.grade)}</div>
             <div class="org-name">${escapeHtml(member.name)}</div>
             <div class="org-spec">${escapeHtml(member.specialty || '')}</div>
@@ -1665,6 +1683,98 @@
         ? roots.map(buildOrgNode).join('')
         : '<li><div class="org-card" style="opacity:.5;">Aucun membre. Ajoutez le premier ci-dessus.</div></li>';
       peuplerSelectSuperieur();
+
+      let rootZone = document.getElementById('orgRootDropZone');
+      if (rootZone) rootZone.style.display = orgUnlocked ? 'block' : 'none';
+    }
+
+    /* ============ DRAG & DROP — RATTACHEMENT HIÉRARCHIQUE ============ */
+    let orgDragId = null;
+
+    function isInSubtree(rootId, targetId){
+      if (rootId === targetId) return true;
+      let children = orgData.filter(m => m.parentId === rootId);
+      return children.some(c => isInSubtree(c.id, targetId));
+    }
+
+    function orgDragStart(e, id){
+      if (!orgUnlocked) { e.preventDefault(); return; }
+      orgDragId = id;
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', String(id)); } catch(err) {}
+      e.currentTarget.classList.add('org-dragging');
+    }
+
+    function orgDragEnd(e){
+      e.currentTarget.classList.remove('org-dragging');
+      document.querySelectorAll('.org-drop-target').forEach(el => el.classList.remove('org-drop-target'));
+    }
+
+    function orgDragOver(e){
+      if (!orgUnlocked) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.classList.add('org-drop-target');
+    }
+
+    function orgDragLeave(e){
+      e.currentTarget.classList.remove('org-drop-target');
+    }
+
+    function orgResolveDragId(e){
+      let id = orgDragId;
+      if (id === null) {
+        let raw = e.dataTransfer.getData('text/plain');
+        id = raw ? parseInt(raw) : null;
+      }
+      orgDragId = null;
+      return id;
+    }
+
+    function orgStatusMessage(color, texte){
+      let statusEl = document.getElementById('orgStatus');
+      statusEl.style.color = color;
+      statusEl.innerText = texte;
+      setTimeout(() => { if (statusEl.innerText === texte) statusEl.innerText = ''; }, 2500);
+    }
+
+    function orgDrop(e, targetId){
+      e.preventDefault();
+      e.currentTarget.classList.remove('org-drop-target');
+      if (!orgUnlocked) return;
+      let draggedId = orgResolveDragId(e);
+      if (draggedId === null || isNaN(draggedId) || draggedId === targetId) return;
+
+      if (isInSubtree(draggedId, targetId)) {
+        playSound('error');
+        orgStatusMessage('var(--danger)', "● Déplacement impossible : rattachement circulaire.");
+        return;
+      }
+
+      let m = orgData.find(x => x.id === draggedId);
+      let cible = orgData.find(x => x.id === targetId);
+      if (!m || !cible) return;
+      m.parentId = targetId;
+      sauvegarderOrganigramme();
+      rendreOrganigramme();
+      playSound('cut');
+      orgStatusMessage('var(--hazard)', `● ${m.name} rattaché(e) à ${cible.name}.`);
+    }
+
+    function orgDropRoot(e){
+      e.preventDefault();
+      e.currentTarget.classList.remove('org-drop-target');
+      if (!orgUnlocked) return;
+      let draggedId = orgResolveDragId(e);
+      if (draggedId === null || isNaN(draggedId)) return;
+      let m = orgData.find(x => x.id === draggedId);
+      if (!m) return;
+      if (m.parentId === null) return;
+      m.parentId = null;
+      sauvegarderOrganigramme();
+      rendreOrganigramme();
+      playSound('cut');
+      orgStatusMessage('var(--hazard)', `● ${m.name} devient chef de section (racine).`);
     }
 
     function ajouterMembreOrg(){
