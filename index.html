@@ -1526,28 +1526,101 @@
         let bl = document.getElementById('bleu').value;
         let j = document.getElementById('jaune').value;
         let n = document.getElementById('noir').value;
+        let fils = [r, bl, j, n];
+
+        // Chaque fil a toujours l'un des 4 états réels (B/E/M/U).
+        // Une règle ne contraint que les fils qu'elle nomme explicitement ; les autres peuvent être n'importe quel état.
+        let compte = (etat) => fils.filter(f => f === etat).length;
 
         let solutions = [];
-        let compteScorched = (r === 'U') + (bl === 'U') + (j === 'U') + (n === 'U');
-        let compteLoose = (r === 'M') + (bl === 'M') + (j === 'M') + (n === 'M');
 
-        if (r === 'E' && j === 'M') solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 1] Rouge (Frayed) + Jaune (Loose) => Couper le fil NOIR (⚫)" });
-        if (r !== 'M' && (bl === 'N/A' || bl === 'B') && (j === 'N/A' || j === 'B') && (n === 'N/A' || n === 'B')) solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 2] Rouge (Sauf Loose) + Bleu/Jaune/Noir (N/A ou Good Condition) => Couper le fil ROUGE (🔴)" });
-        if (bl === 'U' && j === 'B') solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 3] Bleu (Scorched) + Jaune (Good Condition) => Couper le fil JAUNE (🟡)" });
-        if (n === 'M') solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 4] Noir (Loose) + Rouge/Bleu/Jaune (N/A ou Frayed) => Couper le fil BLEU (🔵)" });
-        if (r === 'E' && bl === 'M' && j === 'B' && n === 'M') solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 5] Rouge (Frayed) + Bleu (Loose) + Jaune (Good Condition) + Noir (Loose) => Couper le fil ROUGE (🔴)" });
-        if (r === 'M' && n === 'B') solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 6] Rouge (Loose) + Noir (Good Condition) => Couper le fil BLEU (🔵)" });
-        if (compteScorched === 3) solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 7] Exactement 3 fils Scorched (Brûlés) => Couper le fil JAUNE (🟡)" });
-        if (r === 'M' && bl === 'B' && j === 'E' && n === 'U') solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 8] Rouge (Loose) + Bleu (Good Condition) + Jaune (Frayed) + Noir (Scorched) => Couper le fil NOIR (⚫)" });
-        if (r !== 'B' && bl !== 'B' && j !== 'B' && n !== 'B') solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 9] Tous les fils non-conformes (Not in Good Condition) => Couper le fil NOIR (⚫)" });
-        if (r === 'U' && compteLoose <= 1) solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 10] Rouge (Scorched) + Maximum 1 fil Loose (Mal branché) => Couper le fil BLEU (🔵)" });
-        if (r === 'B' && j === 'U') solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 11] Rouge (Good Condition) + Jaune (Scorched) => Couper le fil NOIR (⚫)" });
-        if (bl === 'E' && n === 'U') solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 12] Bleu (Frayed) + Noir (Scorched) => Couper le fil ROUGE (🔴)" });
-        if (r === 'M' && compteScorched <= 2 && n !== 'E') solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 13] Rouge (Loose) + Max 2 Scorched + Noir non-effiloché => Couper le fil JAUNE (🟡)" });
-        if (r === 'B' && bl !== 'B' && j === 'E' && n === 'M') solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 14] Rouge (Good) + Bleu (Not Good) + Jaune (Frayed) + Noir (Loose) => Couper le fil BLEU (🔵)" });
-        if (r !== 'E' && bl === 'M' && j === 'B') solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 15] Rouge (Non-effiloché) + Bleu (Loose) + Jaune (Good Condition) => Couper le fil ROUGE (🔴)" });
-        if (r === 'E' && bl === 'M' && j === 'U') solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 16] Rouge (Frayed) + Bleu (Loose) + Jaune (Scorched) => Couper le fil JAUNE (🟡)" });
-        if (r === 'B' && bl === 'B' && j === 'B' && n === 'B') solutions.push({ action: "🎲 BONNE CHANCE : Tous les fils sont en Bon état", rule: "[Règle 17] Tous les fils en Good Condition => Bonne chance" });
+        // Règle 1 : Rouge effiloché ET Jaune mal branché => Couper Noir
+        if (r === 'E' && j === 'M') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 1] Rouge (Frayed) + Jaune (Loose) => Couper le fil NOIR (⚫)" });
+        }
+
+        // Règle 2 : Rouge non-Loose ET au moins 2 fils parmi {Bleu,Jaune,Noir} en Good Condition => Couper Rouge
+        if (r !== 'M') {
+          let nbBonEtat = [bl, j, n].filter(f => f === 'B').length;
+          if (nbBonEtat >= 2) {
+            solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: `[Règle 2] Rouge non-Loose + ${nbBonEtat} fils (Bleu/Jaune/Noir) en Good Condition (≥2) => Couper le fil ROUGE (🔴)` });
+          }
+        }
+
+        // Règle 3 : Bleu brûlé ET Jaune bon état => Couper Jaune
+        if (bl === 'U' && j === 'B') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 3] Bleu (Scorched) + Jaune (Good Condition) => Couper le fil JAUNE (🟡)" });
+        }
+
+        // Règle 4 : Noir mal branché ET au moins 2 fils parmi {Rouge,Bleu,Jaune} effilochés => Couper Bleu
+        if (n === 'M' && [r, bl, j].filter(f => f === 'E').length >= 2) {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 4] Noir (Loose) + au moins 2 fils (Rouge/Bleu/Jaune) Frayed => Couper le fil BLEU (🔵)" });
+        }
+
+        // Règle 5 : Rouge effiloché + Bleu mal branché + Jaune bon état + Noir mal branché => Couper Rouge
+        if (r === 'E' && bl === 'M' && j === 'B' && n === 'M') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 5] Rouge (Frayed) + Bleu (Loose) + Jaune (Good Condition) + Noir (Loose) => Couper le fil ROUGE (🔴)" });
+        }
+
+        // Règle 6 : Rouge mal branché ET Noir bon état => Couper Bleu
+        if (r === 'M' && n === 'B') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 6] Rouge (Loose) + Noir (Good Condition) => Couper le fil BLEU (🔵)" });
+        }
+
+        // Règle 7 : Exactement 3 fils brûlés (parmi les 4) => Couper Jaune
+        if (compte('U') === 3) {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 7] Exactement 3 fils Scorched (Brûlés) => Couper le fil JAUNE (🟡)" });
+        }
+
+        // Règle 8 : Rouge mal branché + Jaune effiloché + Bleu bon état + Noir brûlé => Couper Noir
+        if (r === 'M' && j === 'E' && bl === 'B' && n === 'U') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 8] Rouge (Loose) + Jaune (Frayed) + Bleu (Good Condition) + Noir (Scorched) => Couper le fil NOIR (⚫)" });
+        }
+
+        // Règle 9 : Aucun fil en bon état => Couper Noir
+        if (r !== 'B' && bl !== 'B' && j !== 'B' && n !== 'B') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 9] Aucun fil en Good Condition => Couper le fil NOIR (⚫)" });
+        }
+
+        // Règle 10 : Rouge brûlé ET exactement 1 fil parmi {Bleu,Jaune,Noir} mal branché => Couper Bleu
+        if (r === 'U' && [bl, j, n].filter(f => f === 'M').length === 1) {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 10] Rouge (Scorched) + exactement 1 fil (Bleu/Jaune/Noir) Loose => Couper le fil BLEU (🔵)" });
+        }
+
+        // Règle 11 : Rouge bon état ET Jaune brûlé => Couper Noir
+        if (r === 'B' && j === 'U') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil NOIR (⚫)", rule: "[Règle 11] Rouge (Good Condition) + Jaune (Scorched) => Couper le fil NOIR (⚫)" });
+        }
+
+        // Règle 12 : Bleu effiloché ET Noir brûlé => Couper Rouge
+        if (bl === 'E' && n === 'U') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 12] Bleu (Frayed) + Noir (Scorched) => Couper le fil ROUGE (🔴)" });
+        }
+
+        // Règle 13 : Rouge desserré + au moins 2 fils parmi {Bleu,Jaune,Noir} brûlés + Noir PAS effiloché => Couper Jaune
+        if (r === 'M' && [bl, j, n].filter(f => f === 'U').length >= 2 && n !== 'E') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 13] Rouge (Loose) + au moins 2 fils (Bleu/Jaune/Noir) Scorched + Noir non-Frayed => Couper le fil JAUNE (🟡)" });
+        }
+
+        // Règle 14 : Rouge bon état + Bleu PAS bon état + Jaune effiloché + Noir mal branché => Couper Bleu
+        if (r === 'B' && bl !== 'B' && j === 'E' && n === 'M') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil BLEU (🔵)", rule: "[Règle 14] Rouge (Good Condition) + Bleu (non-Good) + Jaune (Frayed) + Noir (Loose) => Couper le fil BLEU (🔵)" });
+        }
+
+        // Règle 15 : Jaune bon état + Bleu desserré + Rouge PAS effiloché => Couper Rouge
+        if (j === 'B' && bl === 'M' && r !== 'E') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil ROUGE (🔴)", rule: "[Règle 15] Jaune (Good Condition) + Bleu (Loose) + Rouge non-Frayed => Couper le fil ROUGE (🔴)" });
+        }
+
+        // Règle 16 : Rouge effiloché + Bleu desserré + Jaune brûlé => Couper Jaune
+        if (r === 'E' && bl === 'M' && j === 'U') {
+          solutions.push({ action: "✂️ ORDRE : Coupez le fil JAUNE (🟡)", rule: "[Règle 16] Rouge (Frayed) + Bleu (Loose) + Jaune (Scorched) => Couper le fil JAUNE (🟡)" });
+        }
+
+        // Règle 17 : Tous les fils en bon état => Bonne chance
+        if (r === 'B' && bl === 'B' && j === 'B' && n === 'B') {
+          solutions.push({ action: "🎲 BONNE CHANCE : Tous les fils sont en Bon état", rule: "[Règle 17] Tous les fils en Good Condition => Bonne chance" });
+        }
 
         if (solutions.length === 0) {
           playSound('error');
