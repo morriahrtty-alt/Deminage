@@ -1526,17 +1526,17 @@
     /* ============ CALCULATEUR IED CABLE ============ */
     /* ============ RÈGLES IED CÂBLE PERSONNALISÉES (ADMIN) ============ */
     const conditionsFilOptions = [
-      ['ANY', 'Peu importe'],
-      ['EQ_B', '= Bon état'],
-      ['EQ_E', '= Effiloché'],
-      ['EQ_M', '= Desserré / Mal branché'],
-      ['EQ_U', '= Brûlé'],
-      ['NEQ_B', '≠ Bon état'],
-      ['NEQ_E', '≠ Effiloché'],
-      ['NEQ_M', '≠ Desserré / Mal branché'],
-      ['NEQ_U', '≠ Brûlé']
+      ['ANY', 'Any / Peu importe'],
+      ['EQ_B', '= Good Condition / Bon état'],
+      ['EQ_E', '= Frayed / Effiloché'],
+      ['EQ_M', '= Loose / Mal branché ou Desserré'],
+      ['EQ_U', '= Scorched / Brûlé'],
+      ['NEQ_B', '≠ Good Condition / Bon état'],
+      ['NEQ_E', '≠ Frayed / Effiloché'],
+      ['NEQ_M', '≠ Loose / Mal branché ou Desserré'],
+      ['NEQ_U', '≠ Scorched / Brûlé']
     ];
-    const etatLabelsCourt = { B: 'Bon état', E: 'Effiloché', M: 'Desserré', U: 'Brûlé' };
+    const etatLabelsCourt = { B: 'Good Condition / Bon état', E: 'Frayed / Effiloché', M: 'Loose / Desserré', U: 'Scorched / Brûlé' };
 
     function chargerReglesPersonnalisees(){
       let saved = localStorage.getItem('eod_custom_cable_rules');
@@ -1588,11 +1588,11 @@
               <label>Nom de la règle (optionnel)</label>
               <input type="text" value="${escapeAttr(regle.label || '')}" placeholder="Ex : Règle découverte le 22/08" onchange="majRegleCable(${i}, 'label', this.value)">
             </div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
-              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Rouge</label>${selectConditionFilHtml(i, 'rouge', regle.rouge)}</div>
-              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Bleu</label>${selectConditionFilHtml(i, 'bleu', regle.bleu)}</div>
-              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Jaune</label>${selectConditionFilHtml(i, 'jaune', regle.jaune)}</div>
-              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Noir</label>${selectConditionFilHtml(i, 'noir', regle.noir)}</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px;">
+              <div class="field" style="margin-bottom:0;"><label>Fil Rouge</label>${selectConditionFilHtml(i, 'rouge', regle.rouge)}</div>
+              <div class="field" style="margin-bottom:0;"><label>Fil Bleu</label>${selectConditionFilHtml(i, 'bleu', regle.bleu)}</div>
+              <div class="field" style="margin-bottom:0;"><label>Fil Jaune</label>${selectConditionFilHtml(i, 'jaune', regle.jaune)}</div>
+              <div class="field" style="margin-bottom:0;"><label>Fil Noir</label>${selectConditionFilHtml(i, 'noir', regle.noir)}</div>
             </div>
             <div class="field" style="max-width:280px;">
               <label>Action à déclencher</label>
