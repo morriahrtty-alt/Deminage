@@ -876,6 +876,17 @@
 
         <hr style="border:none; border-top:1px solid var(--line); margin:30px 0;">
 
+        <h4 class="mono" style="color:var(--hazard); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px;">Règles IED Câble personnalisées</h4>
+        <div class="custom-slot" style="margin-bottom:18px;">
+          Ces règles s'ajoutent aux 17 règles standard. Pour chaque fil, choisissez une condition
+          (« Peu importe » si le fil n'intervient pas dans la règle), puis l'action à déclencher si tous les fils correspondent.
+        </div>
+        <div id="customRulesList"></div>
+        <button class="btn btn-ghost" style="max-width:260px;" onclick="ajouterRegleCable()">+ Ajouter une règle</button>
+        <div class="status-flash" id="customRulesStatus"></div>
+
+        <hr style="border:none; border-top:1px solid var(--line); margin:30px 0;">
+
         <h4 class="mono" style="color:var(--hazard); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px;">Planification briefing</h4>
 
         <div class="field"><label for="briefTitle">Nom de la mission</label><input type="text" id="briefTitle" value="Opération Clean Sweep" oninput="sauvegarderBriefing()"></div>
@@ -1349,6 +1360,7 @@
         chargerBriefingActuel();
         rendreUsersManageList();
         rafraichirSelectsOperateurs();
+        rendreReglesPersonnalisees();
       } else {
         playSound('error');
         document.getElementById('authError').innerText = "● Mot de passe incorrect.";
@@ -1512,6 +1524,119 @@
     }
 
     /* ============ CALCULATEUR IED CABLE ============ */
+    /* ============ RÈGLES IED CÂBLE PERSONNALISÉES (ADMIN) ============ */
+    const conditionsFilOptions = [
+      ['ANY', 'Peu importe'],
+      ['EQ_B', '= Bon état'],
+      ['EQ_E', '= Effiloché'],
+      ['EQ_M', '= Desserré / Mal branché'],
+      ['EQ_U', '= Brûlé'],
+      ['NEQ_B', '≠ Bon état'],
+      ['NEQ_E', '≠ Effiloché'],
+      ['NEQ_M', '≠ Desserré / Mal branché'],
+      ['NEQ_U', '≠ Brûlé']
+    ];
+    const etatLabelsCourt = { B: 'Bon état', E: 'Effiloché', M: 'Desserré', U: 'Brûlé' };
+
+    function chargerReglesPersonnalisees(){
+      let saved = localStorage.getItem('eod_custom_cable_rules');
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function sauvegarderReglesPersonnalisees(regles){
+      localStorage.setItem('eod_custom_cable_rules', JSON.stringify(regles));
+    }
+
+    function testerConditionFil(valeurFil, condition){
+      if (!condition || condition === 'ANY') return true;
+      if (condition.startsWith('EQ_')) return valeurFil === condition.slice(3);
+      if (condition.startsWith('NEQ_')) return valeurFil !== condition.slice(4);
+      return true;
+    }
+
+    function decrireRegleCable(regle){
+      const labels = { rouge: 'Rouge', bleu: 'Bleu', jaune: 'Jaune', noir: 'Noir' };
+      let parts = [];
+      ['rouge', 'bleu', 'jaune', 'noir'].forEach(w => {
+        let c = regle[w];
+        if (!c || c === 'ANY') return;
+        if (c.startsWith('EQ_')) parts.push(`${labels[w]} = ${etatLabelsCourt[c.slice(3)]}`);
+        else if (c.startsWith('NEQ_')) parts.push(`${labels[w]} ≠ ${etatLabelsCourt[c.slice(4)]}`);
+      });
+      return parts.length ? parts.join(' + ') : 'Toujours vrai';
+    }
+
+    function selectConditionFilHtml(i, wire, valeur){
+      let opts = conditionsFilOptions.map(([v, l]) => `<option value="${v}" ${valeur === v ? 'selected' : ''}>${l}</option>`).join('');
+      return `<select onchange="majRegleCable(${i}, '${wire}', this.value)">${opts}</select>`;
+    }
+
+    function rendreReglesPersonnalisees(){
+      let regles = chargerReglesPersonnalisees();
+      let container = document.getElementById('customRulesList');
+      if (!container) return;
+
+      if (regles.length === 0) {
+        container.innerHTML = '<div class="placeholder-slot" style="margin-bottom:16px;">Aucune règle personnalisée pour le moment. Ajoutez-en une ci-dessous.</div>';
+        return;
+      }
+
+      container.innerHTML = regles.map((regle, i) => `
+        <div class="edit-row">
+          <div class="edit-row-fields">
+            <div class="field">
+              <label>Nom de la règle (optionnel)</label>
+              <input type="text" value="${escapeAttr(regle.label || '')}" placeholder="Ex : Règle découverte le 22/08" onchange="majRegleCable(${i}, 'label', this.value)">
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Rouge</label>${selectConditionFilHtml(i, 'rouge', regle.rouge)}</div>
+              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Bleu</label>${selectConditionFilHtml(i, 'bleu', regle.bleu)}</div>
+              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Jaune</label>${selectConditionFilHtml(i, 'jaune', regle.jaune)}</div>
+              <div><label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--hazard); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Fil Noir</label>${selectConditionFilHtml(i, 'noir', regle.noir)}</div>
+            </div>
+            <div class="field" style="max-width:280px;">
+              <label>Action à déclencher</label>
+              <select onchange="majRegleCable(${i}, 'action', this.value)">
+                <option value="ROUGE" ${regle.action === 'ROUGE' ? 'selected' : ''}>Couper le fil ROUGE</option>
+                <option value="BLEU" ${regle.action === 'BLEU' ? 'selected' : ''}>Couper le fil BLEU</option>
+                <option value="JAUNE" ${regle.action === 'JAUNE' ? 'selected' : ''}>Couper le fil JAUNE</option>
+                <option value="NOIR" ${regle.action === 'NOIR' ? 'selected' : ''}>Couper le fil NOIR</option>
+                <option value="CHANCE" ${regle.action === 'CHANCE' ? 'selected' : ''}>Bonne chance (aucun fil)</option>
+              </select>
+            </div>
+          </div>
+          <button class="remove-row" onclick="supprimerRegleCable(${i})" title="Supprimer">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function majRegleCable(i, champ, valeur){
+      let regles = chargerReglesPersonnalisees();
+      if (!regles[i]) return;
+      regles[i][champ] = valeur;
+      sauvegarderReglesPersonnalisees(regles);
+    }
+
+    function ajouterRegleCable(){
+      playSound('click');
+      let regles = chargerReglesPersonnalisees();
+      regles.push({ label: '', rouge: 'ANY', bleu: 'ANY', jaune: 'ANY', noir: 'ANY', action: 'ROUGE' });
+      sauvegarderReglesPersonnalisees(regles);
+      rendreReglesPersonnalisees();
+      let statusEl = document.getElementById('customRulesStatus');
+      statusEl.style.color = 'var(--hazard)';
+      statusEl.innerText = "● Règle ajoutée.";
+      setTimeout(() => { statusEl.innerText = ''; }, 2000);
+    }
+
+    function supprimerRegleCable(i){
+      playSound('click');
+      let regles = chargerReglesPersonnalisees();
+      regles.splice(i, 1);
+      sauvegarderReglesPersonnalisees(regles);
+      rendreReglesPersonnalisees();
+    }
+
     function lancerAnalyse(){
       playSound('click');
       let resultatDiv = document.getElementById('resultat');
@@ -1621,6 +1746,23 @@
         if (r === 'B' && bl === 'B' && j === 'B' && n === 'B') {
           solutions.push({ action: "🎲 BONNE CHANCE : Tous les fils sont en Bon état", rule: "[Règle 17] Tous les fils en Good Condition => Bonne chance" });
         }
+
+        // Règles personnalisées (configurées depuis Admin)
+        let reglesPerso = chargerReglesPersonnalisees();
+        reglesPerso.forEach((regle, idx) => {
+          let matchRouge = testerConditionFil(r, regle.rouge);
+          let matchBleu = testerConditionFil(bl, regle.bleu);
+          let matchJaune = testerConditionFil(j, regle.jaune);
+          let matchNoir = testerConditionFil(n, regle.noir);
+          if (matchRouge && matchBleu && matchJaune && matchNoir) {
+            let nomFil = { ROUGE: 'ROUGE (🔴)', BLEU: 'BLEU (🔵)', JAUNE: 'JAUNE (🟡)', NOIR: 'NOIR (⚫)' };
+            let actionTxt = regle.action === 'CHANCE'
+              ? "🎲 BONNE CHANCE" + (regle.label ? " : " + regle.label : '')
+              : `✂️ ORDRE : Coupez le fil ${nomFil[regle.action] || regle.action}`;
+            let nomRegle = regle.label ? regle.label : `Règle perso #${idx + 1}`;
+            solutions.push({ action: actionTxt, rule: `[${nomRegle}] ${decrireRegleCable(regle)} => ${actionTxt}` });
+          }
+        });
 
         if (solutions.length === 0) {
           playSound('error');
