@@ -514,6 +514,9 @@
     .ticker, .status .dot, .tab-panel{animation:none !important;}
   }
 </style>
+<!-- ============ FIREBASE SDK (compat) ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -529,6 +532,7 @@
     </div>
     <div class="status">
       <span><span class="dot"></span>ÉTAT UNITÉ : OPÉRATIONNEL</span>
+      <span id="syncStatus" class="mono" style="color:var(--sand-dim);">☁ SYNC : INITIALISATION...</span>
       <span id="clock">--:--:--</span>
     </div>
   </div>
@@ -945,6 +949,166 @@
   </div>
 
   <script>
+    /* ============================================================
+       FIREBASE — SYNCHRONISATION EN LIGNE
+       ============================================================
+       1) Créez un projet gratuit sur https://console.firebase.google.com
+       2) Activez "Firestore Database" (mode production ou test)
+       3) Ajoutez une "application Web" au projet, copiez sa config,
+          et collez-la ci-dessous à la place de FIREBASE_CONFIG.
+       4) Dans les règles Firestore, autorisez au minimum votre document,
+          par exemple (mode simple, sans authentification, pour un
+          petit groupe RP privé — voir avertissement de sécurité) :
+
+          rules_version = '2';
+          service cloud.firestore {
+            match /databases/{database}/documents {
+              match /commando_hubert/etat_site {
+                allow read, write: if true;
+              }
+            }
+          }
+
+       ⚠️ SÉCURITÉ : sans authentification, toute personne connaissant
+       l'URL du site (et donc la config Firebase visible dans le code
+       source) peut lire ET modifier les données partagées. Acceptable
+       pour un usage RP entre personnes de confiance ; pour aller plus
+       loin, ajoutez Firebase Authentication et adaptez les règles.
+    ============================================================ */
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAMlV59tjg2wpPu9YLx5qs3kpP87QhwAt8",
+      authDomain: "deminage-ff4c5.firebaseapp.com",
+      projectId: "deminage-ff4c5",
+      storageBucket: "deminage-ff4c5.firebasestorage.app",
+      messagingSenderId: "351868859246",
+      appId: "1:351868859246:web:ae7d86aa6963db27b7077f"
+    };
+
+    const FIREBASE_DOC_PATH = { collection: "commando_hubert", doc: "etat_site" };
+    const EOD_PREFIX = "eod_";
+
+    let firebaseDb = null;
+    let firebaseOperationnel = false;
+    let applicationEtatDistantEnCours = false;
+    let minuteurSyncFirebase = null;
+
+    function majIndicateurSync(texte, couleur){
+      let el = document.getElementById('syncStatus');
+      if (!el) return;
+      el.textContent = "☁ SYNC : " + texte;
+      el.style.color = couleur;
+    }
+
+    function initFirebase(){
+      try {
+        if (FIREBASE_CONFIG.apiKey === "VOTRE_API_KEY") {
+          majIndicateurSync("NON CONFIGURÉ (local uniquement)", "var(--sand-dim)");
+          return;
+        }
+        firebase.initializeApp(FIREBASE_CONFIG);
+        firebaseDb = firebase.firestore();
+        firebaseOperationnel = true;
+        majIndicateurSync("CONNEXION...", "var(--hazard)");
+        ecouterFirebase();
+      } catch (e) {
+        console.error("Erreur d'initialisation Firebase :", e);
+        majIndicateurSync("ERREUR CONFIG", "var(--danger)");
+      }
+    }
+
+    // Rassemble toutes les clés eod_* du localStorage dans un objet plat.
+    function collecterEtatLocal(){
+      let etat = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        let cle = localStorage.key(i);
+        if (cle && cle.startsWith(EOD_PREFIX)) {
+          etat[cle] = localStorage.getItem(cle);
+        }
+      }
+      return etat;
+    }
+
+    // Applique un état reçu de Firebase au localStorage, puis rafraîchit l'interface.
+    function appliquerEtatDistant(donnees){
+      if (!donnees) return;
+      applicationEtatDistantEnCours = true;
+      Object.keys(donnees).forEach(cle => {
+        if (cle.startsWith(EOD_PREFIX) && donnees[cle] !== undefined && donnees[cle] !== null) {
+          localStorage.setItem(cle, donnees[cle]);
+        }
+      });
+      applicationEtatDistantEnCours = false;
+      rafraichirTouteLInterface();
+    }
+
+    // Ré-exécute toutes les fonctions de rendu existantes : chaque panneau
+    // vit en permanence dans le DOM (juste masqué), donc les rafraîchir
+    // en tâche de fond est sans danger, quel que soit l'onglet affiché.
+    function rafraichirTouteLInterface(){
+      try { operatorList = chargerOperateurs(); rafraichirSelectsOperateurs(); } catch(e){}
+      try { rendreUsersManageList(); } catch(e){}
+      try { chargerStatsGlobales(); } catch(e){}
+      try { chargerLogs(); } catch(e){}
+      try { chargerBriefingActuel(); } catch(e){}
+      try { chargerArchivesBriefings(); } catch(e){}
+      try { chargerOrganigramme(); } catch(e){}
+      try { rendreReglesPersonnalisees(); } catch(e){}
+      try { chargerRecrutement(); } catch(e){}
+      try { chargerLiaison(); } catch(e){}
+    }
+
+    // Écoute en temps réel les changements du document partagé.
+    function ecouterFirebase(){
+      if (!firebaseDb) return;
+      firebaseDb.collection(FIREBASE_DOC_PATH.collection).doc(FIREBASE_DOC_PATH.doc)
+        .onSnapshot(snapshot => {
+          majIndicateurSync("EN LIGNE", "var(--ok)");
+          if (snapshot.exists) {
+            appliquerEtatDistant(snapshot.data());
+          } else {
+            // Premier lancement : le document n'existe pas encore, on le crée avec l'état local actuel.
+            pousserVersFirebase(true);
+          }
+        }, erreur => {
+          console.error("Erreur de synchronisation Firebase :", erreur);
+          majIndicateurSync("HORS LIGNE", "var(--danger)");
+        });
+    }
+
+    // Envoie l'état local courant vers Firebase (debounce pour éviter le flood d'écritures).
+    function planifierSyncFirebase(){
+      if (!firebaseOperationnel || applicationEtatDistantEnCours) return;
+      clearTimeout(minuteurSyncFirebase);
+      minuteurSyncFirebase = setTimeout(() => pousserVersFirebase(false), 700);
+    }
+
+    function pousserVersFirebase(immediat){
+      if (!firebaseDb) return;
+      let etat = collecterEtatLocal();
+      firebaseDb.collection(FIREBASE_DOC_PATH.collection).doc(FIREBASE_DOC_PATH.doc)
+        .set(etat, { merge: true })
+        .catch(erreur => {
+          console.error("Erreur d'envoi vers Firebase :", erreur);
+          majIndicateurSync("ERREUR ENVOI", "var(--danger)");
+        });
+    }
+
+    // Intercepte tous les localStorage.setItem/removeItem déjà utilisés dans le
+    // reste du site pour déclencher automatiquement la synchronisation Firebase,
+    // sans avoir à modifier chacun des appels existants.
+    (function accrocherLocalStorage(){
+      const setItemOriginal = localStorage.setItem.bind(localStorage);
+      const removeItemOriginal = localStorage.removeItem.bind(localStorage);
+      localStorage.setItem = function(cle, valeur){
+        setItemOriginal(cle, valeur);
+        if (cle && cle.startsWith(EOD_PREFIX)) planifierSyncFirebase();
+      };
+      localStorage.removeItem = function(cle){
+        removeItemOriginal(cle);
+        if (cle && cle.startsWith(EOD_PREFIX)) planifierSyncFirebase();
+      };
+    })();
+
     /* ============ EASTER EGG CACHÉ ============ */
     function afficherEasterEgg(){
       playSound('click');
@@ -2233,6 +2397,7 @@
       chargerLiaison();
       peuplerSelectGrade();
       chargerOrganigramme();
+      initFirebase();
     });
   </script>
 
