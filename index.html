@@ -1046,6 +1046,7 @@
     // en tâche de fond est sans danger, quel que soit l'onglet affiché.
     function rafraichirTouteLInterface(){
       try { operatorList = chargerOperateurs(); rafraichirSelectsOperateurs(); } catch(e){}
+      try { chargerCompteursVisuels(); } catch(e){}
       try { rendreUsersManageList(); } catch(e){}
       try { chargerStatsGlobales(); } catch(e){}
       try { chargerLogs(); } catch(e){}
